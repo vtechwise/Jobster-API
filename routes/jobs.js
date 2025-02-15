@@ -6,9 +6,14 @@ const {
   deleteJob,
   getJob,
 } = require("../controllers/jobs");
+const testUser = require("../middleware/testUser");
 const router = express.Router();
 
-router.route("/").get(getAllJobs).post(createJob);
-router.route("/:id").patch(updateJob).delete(deleteJob).get(getJob);
+router.route("/").get(getAllJobs).post(testUser, createJob);
+router
+  .route("/:id")
+  .patch(testUser, updateJob)
+  .delete(testUser, deleteJob)
+  .get(getJob);
 
 module.exports = router;

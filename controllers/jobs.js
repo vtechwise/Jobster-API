@@ -36,7 +36,10 @@ const getAllJobs = async (req, res) => {
   const skip = (page - 1) * limit;
   const jobs = await result.skip(skip).limit(limit);
 
-  res.status(StatusCodes.OK).json({ jobs, count: jobs.length });
+  const totalJobs = await Job.countDocuments(queryObject);
+  const numOfPages = Math.ceil(totalJobs / limit);
+
+  res.status(StatusCodes.OK).json({ jobs, totalJobs, numOfPages });
 };
 
 const getJob = async (req, res) => {
