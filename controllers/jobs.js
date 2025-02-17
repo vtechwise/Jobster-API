@@ -1,6 +1,7 @@
 const { StatusCodes } = require("http-status-codes");
 const Job = require("../models/Job");
 const { NotFoundError, BadRequestError } = require("../errors");
+const mongoose = require("mongoose");
 
 const getAllJobs = async (req, res) => {
   const { search, status, jobType, sort } = req.query;
@@ -99,10 +100,29 @@ const deleteJob = async (req, res) => {
   res.send("delete job");
 };
 
+const showStats = async (req, res) => {
+  let stats = await Job.aggregate([
+    { $match: { createdBy: mongoose.Types.ObjectId(req.user.userId) } },
+    { $group: { _id: "$status", count: { $sum: 1 } } },
+  ]);
+  stats = stats.reduce((acc, cur) => {
+    const { _id: title, count } = cur;
+    acc[title] = count;
+    return acc;
+  }, {});
+  const defaultStats = {
+    pending: stats.pending || 0,
+    interview: stats.interview || 0,
+    declined:stats.declined
+  }
+
+  res.status(StatusCodes.OK).json({ defaultStats, monthlyApplications: [] });
+};
 module.exports = {
   getAllJobs,
   createJob,
   updateJob,
   deleteJob,
   getJob,
+  showStats,
 };
